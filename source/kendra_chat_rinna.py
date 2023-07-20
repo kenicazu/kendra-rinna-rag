@@ -22,10 +22,10 @@ class bcolors:
 MAX_HISTORY_LENGTH = 5
 
 def build_chain():
-    region = "ap-northeast-1"
-    kendra_index_id = "05f6c45e-53f6-48fb-878e-1a0624da6fb5"
-    endpoint_name = "japanese-gpt-neox-3-6b-instruction-ppoEndpoint"
-
+    region = os.environ["AWS_REGION"]
+    kendra_index_id = os.environ["KENDRA_INDEX_ID"]
+    endpoint_name = os.environ["RINNA_ENDPOINT"]
+    
     class RinnaContentHandler(LLMContentHandler):
         content_type = "application/json"
         accepts = "application/json"
