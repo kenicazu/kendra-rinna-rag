@@ -1,0 +1,109 @@
+##This CloudFormation template creates an Amazon Kendra index. It adds a webcrawler datasource
+##to the index and crawls the online AWS Documentation for Amazon Kendra, Amazon Lex and Amazon SageMaker
+##After the datasource is configured, it triggers a datasource sync, i.e. the process to crawl the sitemaps
+##and index the crawled documents.
+##The output of the CloudFormation template shows the Kendra index id and the AWS region it was created in.
+##It takes about 30 minutes to create an Amazon Kendra index and about 15 minutes more to crawl and index
+##the content of these webpages to the index. Hence you might need to wait for about 45 minutes after
+##launching the CloudFormation stack
+Resources:
+  ##Create the Role needed to create a Kendra Index
+  KendraIndexRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: kendra.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    'cloudwatch:namespace': 'Kendra'
+                Action:
+                  - 'cloudwatch:PutMetricData'
+              - Effect: Allow
+                Resource: '*'
+                Action: 'logs:DescribeLogGroups'
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:logs:${region}:${account}:log-group:/aws/kendra/*'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                Action: 'logs:CreateLogGroup'
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:logs:${region}:${account}:log-group:/aws/kendra/*:log-stream:*'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                Action: 
+                  - 'logs:DescribeLogStreams'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+          PolicyName: !Join
+            - ''
+            - - !Ref 'AWS::StackName'
+              - '-DocsKendraIndexPolicy'
+      RoleName: !Join
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-DocsKendraIndexRole'
+      
+  ##Create the Kendra Index
+  DocsKendraIndex:
+    Type: 'AWS::Kendra::Index'
+    Properties:
+      Name: !Join
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-Index'
+      Edition: 'DEVELOPER_EDITION'
+      RoleArn: !GetAtt KendraIndexRole.Arn
+
+  ##Create the Role needed to attach the Webcrawler Data Source
+  KendraDSRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: kendra.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:kendra:${region}:${account}:index/${index}'
+                  - region: !Ref 'AWS::Region'
+                    account: !Ref 'AWS::AccountId'
+                    index: !GetAtt DocsKendraIndex.Id
+                Action:
+                  - 'kendra:BatchPutDocument'
+                  - 'kendra:BatchDeleteDocument'
+          PolicyName: !Join
+            - ''
+            - - !Ref 'AWS::StackName'
+              - '-DocsDSPolicy'
+      RoleName: !Join
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-DocsDSRole'
+    
+Outputs:
+  KendraIndexID:
+    Value: !GetAtt DocsKendraIndex.Id
+  AWSRegion:
+    Value: !Ref 'AWS::Region'
