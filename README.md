@@ -1,12 +1,20 @@
 # RAG powered by Amazon Kendra & Rinna
 
-[こちらのブログ](https://github.com/kenicazu/apprunner-sample-app/issues/3)で公開されているソリューションをベースにしており、
-rinna の japanese-gpt-neox-3.6b-instruction-ppo モデルを、SageMaker でリアルタイム推論エンドポイントを Hostingして
-そちらを利用したRAGのデモアプリケーションになります。
+※[AWSの公式ブログ](https://aws.amazon.com/jp/blogs/news/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/)
+で公開されているソリューションをベースに作成しております。
 
-このサンプルアプリケーションでは以下のリソースが必要になります。
+本サンプルアプリケーションでは上記ブログで公開されているソリューションにおいて
+rinna の japanese-gpt-neox-3.6b-instruction-ppo モデルを、SageMaker でリアルタイム推論エンドポイントを Hostingして
+利用するRAGソリューションとなります。
+
+
+## 前提条件
+このサンプルアプリケーションでは以下のAWSリソースが必要になります。
+まだリソースを作成していない場合は本README後半の手順を参考にしてください
+
 - Amazon Kendra
 - SageMaker 推論エンドポイント（rinna japanese-gpt-neox-3.6b-instruction-ppo）
+
 
 ## アーキテクチャイメージ
 
@@ -22,44 +30,55 @@ rinna の japanese-gpt-neox-3.6b-instruction-ppo モデルを、SageMaker でリ
 .
 ├── README.md                           # 本READMEファイル
 ├── /images                             # READMEで使用しているイメージファイル
-└── /source                             # RAGアプリケーションのソースコードやREADME
+├── /kendra                             # kendraのデプロイに必要なcfnテンプレート
+├── /sagemaker                          # SageMaker推論エンドポイントのデプロイに必要なノートブック
+└── /source                             # RAGアプリケーションで使用するソース
+
 
 ```
 
-## デプロイ準備
+## [事前準備] Amazon Kendraのデプロイ
+※既にAmazon Kendraのデプロイが完了している場合はこちらの手順をスキップしてください。
 
-上記のリソースをAWSにデプロイする方法をまとめます。
-デプロイを実行する端末には、下記のソフトウェアが必要です。
+[AWS CloudFormation の テンプレート](./kendra/kendra-docs-index.yaml)を利用して、Amazon Kendra インデックスを作成します。  
+本テンプレートには、Amazon Kendra、Amazon Lex と Amazon SageMaker の AWS オンラインドキュメントを含むサンプルデータが含まれています。  
+なお、リソースの作成に約 30 分かかり、その後同期してインデックスにデータを取り込むのに約 15 分かかります。  
+そのため、スタックを起動してから約 45 分待ってください。スタックの Outputs タブにインデックス ID と AWS リージョンを書き留めておきます。
 
-- AWS CLI v2
-- Node.js 14以上
-- Docker
+
+必要に応じて検索に利用したいデータを追加してください。（一番手軽にできるのはS3に何かしらドキュメントをアップロードする方法だと思います）
+
+
+## [事前準備] Amazon SageMaker 推論エンドポイントのデプロイ
+※既にSageMakerの推論エンドポイントのデプロイが完了している場合はこちらの手順をスキップしてください。
+
+SageMaker Studio NotebooksあるいはSageMaker Notebooksで[こちらのノートブック](./kendra/kendra-docs-index.yaml)を利用して、  
+rinna の japanese-gpt-neox-3.6b-instruction-ppo モデルの推論エンドポイントをデプロイします。
+
+## RAGサンプルアプリケーションデプロイに必要な環境の整備
+※Cloud9の利用を前提に記載しております。環境によって不要な手順はスキップしてください。
+
+Python3.9以降が必要になるので、インストールされていない場合はインストールします
 
 ```shell
-# CDKプロジェクト配下に移動
-cd infra
+python --version
 
-# IaCの依存関係をインストール
-npm ci
-
-# CDKをデプロイ先のリージョンで使えるように初期化する（以下コマンドはap-northeast-1の例）
-AWS_REGION=ap-northeast-1 npx cdk bootstrap
 ```
-## デプロイ手順
 
-**エラーとなった場合はコマンドを実行しているディレクトリが正しいことを確認してください**
-### BaseStackのデプロイ
-
-まずはじめにBaseStackをデプロイし、App Runnerでサービスを実行するために必要なVPCやDB（Aurora Serverless V2）、コンテナイメージを格納するためのECRプライベートリポジトリを作成します。
+例えば以下のように出力されれば問題ないです。
 
 ```shell
-# cdk-base-stackのデプロイ
-npx cdk deploy BaseStack --require-approval never
+Python 3.9.13
+
 ```
-なお、CDKのOutputsとして **BaseStack.RepositoryURI** が出力されると思うので、メモしておいてください。  
-これは作成したECRリポジトリのURIになります。 この後の手順でこちらのリポジトリにコンテナをプッシュします。 
+
+次に[Streamlit](https://docs.streamlit.io/library/get-started/installation)と
+[LangChain](https://python.langchain.com/docs/get_started/installation)をインストールします
 
 ```shell
-# 出力例
-BaseStack.RepositoryURI = *******.dkr.ecr.ap-northeast-1.amazonaws.com/app-runner
+pip install streamlit
+pip install langchain
+
 ```
+
+ここまで問題なく完了した方は[サンプルアプリケーションのデプロイ](./source)に進んでください
