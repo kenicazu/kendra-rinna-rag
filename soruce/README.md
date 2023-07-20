@@ -13,8 +13,8 @@ conda env create -f environment.yml
 エラーとなる場合はカレントディレクトリが*./soruce*になっていることを確認してください。
 
 ## 環境変数のセット
-以下のコマンドを実行して環境変数をセットします。
-*kendra_chat_rinna.py*のコードを直接変更して環境変数をセットしていただいても構いません。
+以下のコマンドを実行して環境変数をセットします。  
+**kendra_chat_rinna.py** のコードを直接変更して環境変数をセットしていただいても構いません。
 
 ```bash
 export AWS_REGION="<YOUR-AWS-REGION>"
@@ -28,7 +28,7 @@ export RINNA_ENDPOINT="<YOUR-SAGEMAKER-ENDPOINT-FOR-RINNA>"
 streamlit run app.py rinna
 ```
 
-出力されるURLを開くとデモアプリケーションが表示されます。
+出力されるURLを開くとデモアプリケーションが表示されます。  
 もし、うまく接続できない場合は（AWS上のインスタンスで実行している場合）セキュリティグループ等の設定をご確認ください。
 
 ![イメージ図1](../images/image1.png)

@@ -3,20 +3,20 @@
 ※[AWSの公式ブログ](https://aws.amazon.com/jp/blogs/news/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/)
 で公開されているソリューションをベースに作成しております。
 
-本サンプルアプリケーションでは上記ブログで公開されているソリューションにおいて
-rinna の japanese-gpt-neox-3.6b-instruction-ppo モデルを、SageMaker でリアルタイム推論エンドポイントを Hostingして
-利用するRAGソリューションとなります。
-
+本サンプルアプリケーションでは上記ブログで公開されているソリューションにおいて  
+[rinna の japanese-gpt-neox-3.6b-instruction-ppo](https://huggingface.co/rinna/japanese-gpt-neox-3.6b-instruction-ppo)モデルを使用するRAGソリューションとなります。  
+上記モデルはSageMaker でリアルタイム推論エンドポイントにホスティングします。
 
 ## 前提条件
-このサンプルアプリケーションでは以下のAWSリソースが必要になります。
-まだリソースを作成していない場合は本README後半の手順を参考にしてください
+このサンプルアプリケーションでは以下のAWSリソースが必要になります。  
+まだリソースを作成していない場合は本README後半の手順を参考にしてください。
 
 - Amazon Kendra
 - SageMaker 推論エンドポイント（rinna japanese-gpt-neox-3.6b-instruction-ppo）
 
 
 ## アーキテクチャイメージ
+本READMEの手順ではS3に格納しているドキュメントのみを対象としておりますが、必要に応じてデータソースを追加してください。
 
 ![全体のアーキテクチャ図](./images/architecture.png)
 
@@ -42,11 +42,14 @@ rinna の japanese-gpt-neox-3.6b-instruction-ppo モデルを、SageMaker でリ
 
 [AWS CloudFormation の テンプレート](./kendra/kendra-docs-index.yaml)を利用して、Amazon Kendra インデックスを作成します。  
 本テンプレートには、Amazon Kendra、Amazon Lex と Amazon SageMaker の AWS オンラインドキュメントを含むサンプルデータが含まれています。  
+
 なお、リソースの作成に約 30 分かかり、その後同期してインデックスにデータを取り込むのに約 15 分かかります。  
-そのため、スタックを起動してから約 45 分待ってください。スタックの Outputs タブにインデックス ID と AWS リージョンを書き留めておきます。
+そのため、スタックを起動してから約 45 分待ってください。  
+スタックの Outputs タブにインデックス ID と AWS リージョンを書き留めておきます。
 
 
-必要に応じて検索に利用したいデータを追加してください。（一番手軽にできるのはS3に何かしらドキュメントをアップロードする方法だと思います）
+必要に応じて検索に利用したいデータを追加してください。  
+（一番手軽にできるのはS3に何かしらドキュメントをアップロードする方法だと思います）
 
 
 ## [事前準備] Amazon SageMaker 推論エンドポイントのデプロイ
