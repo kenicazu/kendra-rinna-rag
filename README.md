@@ -3,9 +3,9 @@
 ※[AWSの公式ブログ](https://aws.amazon.com/jp/blogs/news/quickly-build-high-accuracy-generative-ai-applications-on-enterprise-data-using-amazon-kendra-langchain-and-large-language-models/)
 で公開されているソリューションをベースに作成しております。
 
-本サンプルアプリケーションでは上記ブログで公開されているソリューションにおいて  
-[rinna の japanese-gpt-neox-3.6b-instruction-ppo](https://huggingface.co/rinna/japanese-gpt-neox-3.6b-instruction-ppo)モデルを使用するRAGソリューションとなります。  
-上記モデルはSageMaker でリアルタイム推論エンドポイントにホスティングします。
+本サンプルアプリケーションでは上記ブログで公開されているソリューションから以下の点を変更しております。
+* LLMに[rinna の japanese-gpt-neox-3.6b-instruction-ppo](https://huggingface.co/rinna/japanese-gpt-neox-3.6b-instruction-ppo)を使用します。こちらをSageMakerの推論エンドポイントにホスティングします。
+* ConversationalRetrievalChainではなく、RetrievalQAを使用しております。
 
 ## 前提条件
 このサンプルアプリケーションでは以下のAWSリソースが必要になります。  
